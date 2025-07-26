@@ -120,59 +120,121 @@
     </div>
 
     <!-- Returned & Acknowledgement Table -->
-<div class="bg-white shadow rounded-lg p-6 mt-6">
-    <h2 class="text-lg font-medium text-gray-900 mb-4">Assets Status</h2>
-    <div class="overflow-x-auto">
+    <div class="bg-white shadow rounded-lg p-6 mt-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Assets Status</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Asset</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acknowledged</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Returned</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @foreach($assignments as $assignment)
+                    <tr>
+                        <td class="px-6 py-4">{{$assignment->asset->name}}</td>
+                        <td class="px-6 py-4">{{$assignment->user->name}}</td>
+                        <td class="px-6 py-4">
+                            @if($assignment->acknowledged)
+                                <span class="text-green-600">Acknowledged</span>
+                            @else
+                                <span class="text-red-600">Pending</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4">
+                            @if($assignment->returned && $assignment->returned_at)
+                                <span class="text-gray-600">Returned ({{ $assignment->returned_at->format('d M Y') }})</span>
+                            @else
+                                <span class="text-blue-600">Not Returned</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4">
+                            @if(!$assignment->returned)
+                                @if($assignment->asset->handling_type === 'Returnable')
+                                    <form action="{{ route('admin.assets.return', $assignment->asset->id) }}" method="POST">
+                                        @csrf
+                                        <button class="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700" onclick="return confirm('Return this asset?')">Return</button>
+                                    </form>
+                                @else
+                                    <span class="text-gray-400">No Return</span>
+                                @endif
+                            @else
+                                <span class="text-gray-400">Returned</span>
+                            @endif
+                        </td>
+
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Assets Table -->
+    <div class="bg-white shadow rounded-lg p-6 mt-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Assets</h2>
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Asset</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acknowledged</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Returned</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Brand</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-                @foreach($assignments as $assignment)
+                @foreach(App\Models\Asset::all() as $asset)
                 <tr>
-                    <td class="px-6 py-4">{{$assignment->asset->name}}</td>
-                    <td class="px-6 py-4">{{$assignment->user->name}}</td>
-                    <td class="px-6 py-4">
-                        @if($assignment->acknowledged)
-                            <span class="text-green-600">Acknowledged</span>
-                        @else
-                            <span class="text-red-600">Pending</span>
-                        @endif
+                    <td class="px-6 py-4">{{ $asset->name }}</td>
+                    <td class="px-6 py-4">{{ $asset->brand }}</td>
+                    <td class="px-6 py-4">{{ $asset->status }}</td>
+                    <td class="px-6 py-4 flex space-x-2">
+                        <a href="{{ route('admin.assets.edit', $asset->id) }}" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">Edit</a>
+                        <form action="{{ route('admin.assets.delete', $asset->id) }}" method="POST" onsubmit="return confirm('Delete this asset?')">
+                            @csrf
+                            @method('DELETE')
+                            <button class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+                        </form>
                     </td>
-                    <td class="px-6 py-4">
-                        @if($assignment->returned && $assignment->returned_at)
-                            <span class="text-gray-600">Returned ({{ $assignment->returned_at->format('d M Y') }})</span>
-                        @else
-                            <span class="text-blue-600">Not Returned</span>
-                        @endif
-                    </td>
-                    <td class="px-6 py-4">
-                        @if(!$assignment->returned)
-                            @if($assignment->asset->handling_type === 'Returnable')
-                                <form action="{{ route('admin.assets.return', $assignment->asset->id) }}" method="POST">
-                                    @csrf
-                                    <button class="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700" onclick="return confirm('Return this asset?')">Return</button>
-                                </form>
-                            @else
-                                <span class="text-gray-400">No Return</span>
-                            @endif
-                        @else
-                            <span class="text-gray-400">Returned</span>
-                        @endif
-                    </td>
-
                 </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
-</div>
+
+    <!-- Vendors Table -->
+    <div class="bg-white shadow rounded-lg p-6 mt-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Vendors</h2>
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Company</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @foreach(App\Models\Vendor::all() as $vendor)
+                <tr>
+                    <td class="px-6 py-4">{{ $vendor->name }}</td>
+                    <td class="px-6 py-4">{{ $vendor->company_name }}</td>
+                    <td class="px-6 py-4 flex space-x-2">
+                        <a href="{{ route('admin.vendors.edit', $vendor->id) }}" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">Edit</a>
+                        <form action="{{ route('admin.vendors.delete', $vendor->id) }}" method="POST" onsubmit="return confirm('Delete this vendor?')">
+                            @csrf
+                            @method('DELETE')
+                            <button class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 
 
     <!-- Recent Activity -->

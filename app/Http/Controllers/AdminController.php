@@ -107,24 +107,83 @@ class AdminController
     }
 
     public function returnAsset($id)
-{
-    $assignment = AssetAssignment::where('asset_id', $id)->where('returned', false)->first();
+    {
+        $assignment = AssetAssignment::where('asset_id', $id)->where('returned', false)->first();
 
-    if ($assignment) {
-        $assignment->update([
-            'returned' => true,
-            'returned_at' => now()
-        ]);
+        if ($assignment) {
+            $assignment->update([
+                'returned' => true,
+                'returned_at' => now()
+            ]);
 
-        $asset = Asset::find($id);
-        $asset->update([
-            'status' => 'Returned to vendor',
-            'returned_date' => now()
-        ]);
+            $asset = Asset::find($id);
+            $asset->update([
+                'status' => 'Returned to vendor',
+                'returned_date' => now()
+            ]);
 
-        return back()->with('success', 'Asset marked as returned successfully.');
+            return back()->with('success', 'Asset marked as returned successfully.');
+        }
+
+        return back()->with('error', 'Asset assignment not found or already returned.');
+    }
+    // Edit Asset
+    public function editAsset($id)
+    {
+        $asset = Asset::findOrFail($id);
+        $vendors = Vendor::all();
+        return view('admin.assets.edit', compact('asset', 'vendors'));
     }
 
-    return back()->with('error', 'Asset assignment not found or already returned.');
-}
+    // Update Asset
+    public function updateAsset(Request $request, $id)
+    {
+        $asset = Asset::findOrFail($id);
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'brand' => 'required|string|max:255',
+            'specification' => 'required|string',
+            'nrg_serial_number' => 'required|string|unique:assets,nrg_serial_number,'.$id,
+            'category' => 'required|in:Laptop,Monitor,Mouse,Keyboard,Others',
+            'handling_type' => 'required|in:Returnable,Non-returnable,Consumable',
+            'vendor_id' => 'required|exists:vendors,id',
+            'procurement_date' => 'required|date',
+            'status' => 'required|in:Unassigned,Assigned,Returned to vendor',
+        ]);
+        $asset->update($validated);
+        return redirect()->route('admin.dashboard')->with('success', 'Asset updated successfully.');
+    }
+
+    // Delete Asset
+    public function deleteAsset($id)
+    {
+        Asset::destroy($id);
+        return back()->with('success', 'Asset deleted successfully.');
+    }
+    // Edit Vendor
+    public function editVendor($id)
+    {
+        $vendor = Vendor::findOrFail($id);
+        return view('admin.vendors.edit', compact('vendor'));
+    }
+
+    // Update Vendor
+    public function updateVendor(Request $request, $id)
+    {
+        $vendor = Vendor::findOrFail($id);
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:vendors,name,'.$id,
+            'company_name' => 'required|string|max:255',
+            'address' => 'required|string',
+        ]);
+        $vendor->update($validated);
+        return redirect()->route('admin.dashboard')->with('success', 'Vendor updated successfully.');
+    }
+
+    // Delete Vendor
+    public function deleteVendor($id)
+    {
+        Vendor::destroy($id);
+        return back()->with('success', 'Vendor deleted successfully.');
+    }
 }
