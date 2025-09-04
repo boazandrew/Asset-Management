@@ -24,7 +24,8 @@ Route::middleware(['auth','role:admin'])->prefix('admin')->name('admin.')->group
     // Asset
     Route::get('/assets/create', [AdminController::class, 'createAsset'])->name('assets.create');
     Route::post('/assets/store', [AdminController::class, 'storeAsset'])->name('assets.store');
-    Route::post('/assets/{id}/return', [AdminController::class, 'returnAsset'])->name('assets.return');
+    Route::post('/assets/{id}/return', [AdminController::class, 'returnAsset'])->name('assets.return'); // return from user
+    Route::post('/assets/{id}/vendor-return', [AdminController::class, 'returnToVendor'])->name('assets.vendor_return'); // return to vendor
     Route::get('/assets/{id}/edit', [AdminController::class, 'editAsset'])->name('assets.edit');
     Route::put('/assets/{id}', [AdminController::class, 'updateAsset'])->name('assets.update');
     Route::delete('/assets/{id}', [AdminController::class, 'deleteAsset'])->name('assets.delete');

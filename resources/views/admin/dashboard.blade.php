@@ -119,7 +119,7 @@
         </div>
     </div>
 
-    <!-- Returned & Acknowledgement Table -->
+<!-- Returned & Acknowledgement Table -->
     <div class="bg-white shadow rounded-lg p-6 mt-6">
         <h2 class="text-lg font-medium text-gray-900 mb-4">Assets Status</h2>
         <div class="overflow-x-auto">
@@ -136,8 +136,8 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @foreach($assignments as $assignment)
                     <tr>
-                        <td class="px-6 py-4">{{$assignment->asset->name}}</td>
-                        <td class="px-6 py-4">{{$assignment->user->name}}</td>
+                        <td class="px-6 py-4">{{ $assignment->asset->name ?? '-' }}</td>
+                        <td class="px-6 py-4">{{ $assignment->user->name ?? '-' }}</td>
                         <td class="px-6 py-4">
                             @if($assignment->acknowledged)
                                 <span class="text-green-600">Acknowledged</span>
@@ -154,10 +154,10 @@
                         </td>
                         <td class="px-6 py-4">
                             @if(!$assignment->returned)
-                                @if($assignment->asset->handling_type === 'Returnable')
-                                    <form action="{{ route('admin.assets.return', $assignment->asset->id) }}" method="POST">
+                                @if($assignment->asset && $assignment->asset->handling_type === 'Returnable')
+                                    <form action="{{ route('admin.assets.return', $assignment->asset->id) }}" method="POST" style="display:inline-block">
                                         @csrf
-                                        <button class="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700" onclick="return confirm('Return this asset?')">Return</button>
+                                        <button class="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700" onclick="return confirm('Return this asset from user?')">Return</button>
                                     </form>
                                 @else
                                     <span class="text-gray-400">No Return</span>
@@ -166,7 +166,6 @@
                                 <span class="text-gray-400">Returned</span>
                             @endif
                         </td>
-
                     </tr>
                     @endforeach
                 </tbody>
@@ -174,12 +173,13 @@
         </div>
     </div>
 
-    <!-- Assets Table -->
+<!-- Assets Table -->
     <div class="bg-white shadow rounded-lg p-6 mt-6">
         <h2 class="text-lg font-medium text-gray-900 mb-4">Assets</h2>
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">S.No</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Brand</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
@@ -187,18 +187,31 @@
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-                @foreach(App\Models\Asset::all() as $asset)
+                @foreach(\App\Models\Asset::orderBy('id','asc')->get() as $asset)
                 <tr>
+                    <td class="px-6 py-4">{{ $asset->nrg_serial_number }}</td>
                     <td class="px-6 py-4">{{ $asset->name }}</td>
                     <td class="px-6 py-4">{{ $asset->brand }}</td>
                     <td class="px-6 py-4">{{ $asset->status }}</td>
                     <td class="px-6 py-4 flex space-x-2">
-                        <a href="{{ route('admin.assets.edit', $asset->id) }}" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">Edit</a>
+                        @if($asset->status !== 'Returned to vendor')
+                            <a href="{{ route('admin.assets.edit', $asset->id) }}" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">Edit</a>
+                        @else
+                            <button class="px-3 py-1 bg-gray-300 text-gray-700 rounded cursor-not-allowed" disabled>Edit</button>
+                        @endif
+
                         <form action="{{ route('admin.assets.delete', $asset->id) }}" method="POST" onsubmit="return confirm('Delete this asset?')">
                             @csrf
                             @method('DELETE')
                             <button class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
                         </form>
+
+                        @if($asset->handling_type === 'Returnable' && $asset->status !== 'Returned to vendor')
+                            <form action="{{ route('admin.assets.vendor_return', $asset->id) }}" method="POST" onsubmit="return confirm('Return this asset to vendor?')">
+                                @csrf
+                                <button class="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700">Return to Vendor</button>
+                            </form>
+                        @endif
                     </td>
                 </tr>
                 @endforeach

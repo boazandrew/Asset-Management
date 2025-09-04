@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Http\Controllers;
+namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Asset;
@@ -14,12 +14,12 @@ class AdminController
     public function dashboard()
     {
         $stats = [
-            'total_assets' => Asset::count(),
-            'assigned_assets' => Asset::where('status', 'Assigned')->count(),
-            'unassigned_assets' => Asset::where('status', 'Unassigned')->count(),
-            'returned_assets' => Asset::where('status', 'Returned to vendor')->count(),
-            'total_users' => User::where('role', 'user')->count(),
-            'total_vendors' => Vendor::count(),
+            'total_assets'     => Asset::count(),
+            'assigned_assets'  => Asset::where('status', 'Assigned')->count(),
+            'unassigned_assets'=> Asset::where('status', 'Unassigned')->count(),
+            'returned_assets'  => Asset::where('status', 'Returned to vendor')->count(),
+            'total_users'      => User::where('role', 'user')->count(),
+            'total_vendors'    => Vendor::count(),
         ];
 
         // Load all asset assignments with asset & user info
@@ -29,7 +29,6 @@ class AdminController
 
         return view('admin.dashboard', compact('stats', 'assignments'));
     }
-
 
     // Add asset
     public function createAsset()
@@ -44,18 +43,21 @@ class AdminController
             'name' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
             'specification' => 'required|string',
-            'nrg_serial_number' => 'required|string|unique:assets,nrg_serial_number',
             'category' => 'required|in:Laptop,Monitor,Mouse,Keyboard,Others',
             'handling_type' => 'required|in:Returnable,Non-returnable,Consumable',
             'vendor_id' => 'required|exists:vendors,id',
             'procurement_date' => 'required|date',
-            'status' => 'required|in:Unassigned,Assigned,Returned to vendor',
+            // we don't require status on create — default to Unassigned
         ]);
 
         if($validator->fails()){
             return back()->withErrors($validator)->withInput();
         }
-        Asset::create($validator->validated());
+
+        $data = $validator->validated();
+        $data['status'] = 'Unassigned';
+
+        Asset::create($data);
 
         return redirect()->route('admin.dashboard')->with('success', 'Asset created successfully.');
     }
@@ -85,7 +87,10 @@ class AdminController
     // Assign Asset
     public function createAssignment(){
         $users = User::where('role', 'user')->get();
-        $assets = Asset::doesntHave('assignments')->get();
+
+        // Only assets that are currently unassigned should be selectable
+        $assets = Asset::where('status', 'Unassigned')->get();
+
         return view('admin.assignments.create', compact('users', 'assets'));
     }
 
@@ -101,32 +106,78 @@ class AdminController
             return back()->withErrors($validator)->withInput();
         }
 
-        AssetAssignment::create($validator->validated());
+        $data = $validator->validated();
+
+        $asset = Asset::findOrFail($data['asset_id']);
+        if ($asset->status !== 'Unassigned') {
+            return back()->with('error', 'This asset is not available for assignment.');
+        }
+
+        AssetAssignment::create($data);
+
+        // mark asset as assigned
+        $asset->status = 'Assigned';
+        $asset->save();
 
         return redirect()->route('admin.dashboard')->with('success', 'Asset assigned successfully.');
     }
 
+    /**
+     * Return action from user -> mark assignment returned and make asset available (Unassigned)
+     * $id is asset id (keeps your earlier route)
+     */
     public function returnAsset($id)
     {
-        $assignment = AssetAssignment::where('asset_id', $id)->where('returned', false)->first();
+        $assignment = AssetAssignment::where('asset_id', $id)
+                        ->where('returned', false)
+                        ->latest()
+                        ->first();
 
         if ($assignment) {
             $assignment->update([
                 'returned' => true,
-                'returned_at' => now()
+                'returned_at' => now(),
             ]);
 
-            $asset = Asset::find($id);
-            $asset->update([
-                'status' => 'Returned to vendor',
-                'returned_date' => now()
-            ]);
+            $asset = Asset::findOrFail($id);
+            $asset->status = 'Unassigned';     // make available again
+            $asset->returned_date = null;      // not "returned to vendor"
+            $asset->save();
 
-            return back()->with('success', 'Asset marked as returned successfully.');
+            return back()->with('success', 'Asset marked as returned (from user) and is now unassigned.');
         }
 
-        return back()->with('error', 'Asset assignment not found or already returned.');
+        return back()->with('error', 'Active assignment not found or already returned.');
     }
+
+    /**
+     * Mark asset as returned to vendor (admin action).
+     * This closes any active assignment and sets asset status so it is not assignable anymore.
+     */
+    public function returnToVendor($id)
+    {
+        $asset = Asset::findOrFail($id);
+
+        // close any active assignment
+        $assignment = AssetAssignment::where('asset_id', $id)
+                        ->where('returned', false)
+                        ->latest()
+                        ->first();
+
+        if ($assignment) {
+            $assignment->update([
+                'returned' => true,
+                'returned_at' => now(),
+            ]);
+        }
+
+        $asset->status = 'Returned to vendor';
+        $asset->returned_date = now();
+        $asset->save();
+
+        return back()->with('success', 'Asset marked as returned to vendor.');
+    }
+
     // Edit Asset
     public function editAsset($id)
     {
@@ -139,17 +190,29 @@ class AdminController
     public function updateAsset(Request $request, $id)
     {
         $asset = Asset::findOrFail($id);
+
+        // if asset is already returned to vendor, disallow edits to protect that asset
+        if ($asset->status === 'Returned to vendor') {
+            return back()->with('error', 'Cannot edit an asset that has been returned to vendor.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
             'specification' => 'required|string',
-            'nrg_serial_number' => 'required|string|unique:assets,nrg_serial_number,'.$id,
             'category' => 'required|in:Laptop,Monitor,Mouse,Keyboard,Others',
             'handling_type' => 'required|in:Returnable,Non-returnable,Consumable',
             'vendor_id' => 'required|exists:vendors,id',
             'procurement_date' => 'required|date',
             'status' => 'required|in:Unassigned,Assigned,Returned to vendor',
         ]);
+
+        // If asset is currently assigned, do not allow changing status away from Assigned
+        if ($asset->status === 'Assigned' && $validated['status'] !== 'Assigned') {
+            return back()->with('error', 'Cannot change status while asset is assigned to a user.');
+        }
+
+        // Update normally
         $asset->update($validated);
         return redirect()->route('admin.dashboard')->with('success', 'Asset updated successfully.');
     }
@@ -160,14 +223,14 @@ class AdminController
         Asset::destroy($id);
         return back()->with('success', 'Asset deleted successfully.');
     }
-    // Edit Vendor
+
+    
     public function editVendor($id)
     {
         $vendor = Vendor::findOrFail($id);
         return view('admin.vendors.edit', compact('vendor'));
     }
 
-    // Update Vendor
     public function updateVendor(Request $request, $id)
     {
         $vendor = Vendor::findOrFail($id);
@@ -180,7 +243,6 @@ class AdminController
         return redirect()->route('admin.dashboard')->with('success', 'Vendor updated successfully.');
     }
 
-    // Delete Vendor
     public function deleteVendor($id)
     {
         Vendor::destroy($id);
