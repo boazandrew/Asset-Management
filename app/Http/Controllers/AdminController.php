@@ -31,9 +31,16 @@ class AdminController
     }
 
     // Add asset
-    public function createAsset()
+    public function createAsset(Request $request)
     {
         $vendors = Vendor::all();
+
+        // If AJAX request, return only the _form partial HTML
+        if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return view('admin.assets._form', compact('vendors'))->render();
+        }
+
+        // Normal full page (fallback)
         return view('admin.assets.create', compact('vendors'));
     }
 
@@ -179,10 +186,15 @@ class AdminController
     }
 
     // Edit Asset
-    public function editAsset($id)
+    public function editAsset($id, Request $request)
     {
         $asset = Asset::findOrFail($id);
         $vendors = Vendor::all();
+
+        if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return view('admin.assets._form', compact('asset', 'vendors'))->render();
+        }
+
         return view('admin.assets.edit', compact('asset', 'vendors'));
     }
 
