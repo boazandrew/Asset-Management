@@ -121,6 +121,5 @@
         <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700">
             {{ $isEdit ? 'Update Asset' : 'Save Asset' }}
         </button>
-        <button type="button" onclick="closeAssetModal()" class="w-full bg-gray-200 text-gray-800 py-2 rounded hover:bg-gray-300">Cancel</button>
     </div>
 </form>
