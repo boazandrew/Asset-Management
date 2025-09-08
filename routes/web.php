@@ -10,16 +10,16 @@ Route::get('/', function () {
 });
 
 // Authentication Routes
-Route::middleware('guest')->group(function(){
-    Route::get('/login',[AuthController::class, 'showLogin'])->name('login');
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Admin Routes
-Route::middleware(['auth','role:admin'])->prefix('admin')->name('admin.')->group(function(){
-    Route::get('/dashboard',[AdminController::class, 'dashboard'])->name('dashboard');
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
     // Asset
     Route::get('/assets/create', [AdminController::class, 'createAsset'])->name('assets.create');

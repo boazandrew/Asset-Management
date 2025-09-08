@@ -15,7 +15,8 @@ class Vendor extends Model
         'address',
     ];
 
-    public function assets(){
+    public function assets()
+    {
         return $this->hasMany(Asset::class);
     }
 }

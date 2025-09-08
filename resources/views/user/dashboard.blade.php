@@ -5,7 +5,7 @@
 @section('content')
 <div class="space-y-6">
     <!-- Page Header -->
-     <div class="bg-white shadow rounded-lg p-6">
+    <div class="bg-white shadow rounded-lg p-6">
         <h1 class="text-2xl font-bold text-gray-900">My Assigned Assets</h1>
         <p class="mt-1 text-sm text-gray-600">View and acknowledge your assigned assets</p>
     </div>
@@ -54,30 +54,30 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @if($assignment->returned)
-                                <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-800">
-                                    Returned
-                                </span>
+                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-800">
+                                Returned
+                            </span>
                             @elseif($assignment->acknowledged)
-                                <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                                    ✓ Acknowledged
-                                </span>
+                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                ✓ Acknowledged
+                            </span>
                             @else
-                                <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
-                                    ⚠ Pending
-                                </span>
+                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
+                                ⚠ Pending
+                            </span>
                             @endif
                         </td>
 
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             @if(!$assignment->acknowledged && !$assignment->returned)
-                                <form action="{{route('user.acknowledge.asset', $assignment->id)}}" method="POST" class="inline">
-                                    @csrf
-                                    <button type="submit" onclick="return confirm('Are you sure you want to acknowledge this asset?')" class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Acknowledge</button>
-                                </form>
+                            <form action="{{route('user.acknowledge.asset', $assignment->id)}}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" onclick="return confirm('Are you sure you want to acknowledge this asset?')" class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Acknowledge</button>
+                            </form>
                             @elseif($assignment->returned)
-                                <span class="text-gray-400 text-xs">Returned</span>
+                            <span class="text-gray-400 text-xs">Returned</span>
                             @else
-                                <span class="text-gray-400 text-xs">Already acknowledged</span>
+                            <span class="text-gray-400 text-xs">Already acknowledged</span>
                             @endif
                         </td>
                     </tr>

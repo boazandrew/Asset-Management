@@ -9,14 +9,14 @@ use Illuminate\Support\Facades\Auth;
 
 class CheckRole
 {
-    public function handle(Request $request, Closure $next, $role):response
+    public function handle(Request $request, Closure $next, $role): response
     {
-        if(!Auth::check()){
+        if (!Auth::check()) {
             return redirect()->route('login');
         }
 
-        if(Auth::user()->role!==$role){
-            if(Auth::user()->role==='admin'){
+        if (Auth::user()->role !== $role) {
+            if (Auth::user()->role === 'admin') {
                 return redirect()->route('admin.dashboard');
             } else {
                 return redirect()->route('user.dashboard');

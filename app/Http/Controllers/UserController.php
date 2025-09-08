@@ -8,28 +8,30 @@ use App\Models\AssetAssignment;
 
 class UserController
 {
-    public function dashboard(){
-       
+    public function dashboard()
+    {
+
         $assignments = AssetAssignment::with(['asset', 'asset.vendor'])
-            ->where('user_id',Auth::id())
+            ->where('user_id', Auth::id())
             ->orderBy('assigned_date', 'desc')
             ->get();
 
-            return view('user.dashboard',compact('assignments'));
+        return view('user.dashboard', compact('assignments'));
     }
 
-    public function acknowledgeAssignment(Request $request, $assignmentId){
-        
+    public function acknowledgeAssignment(Request $request, $assignmentId)
+    {
+
         $assignment = AssetAssignment::where('id', $assignmentId)
             ->where('user_id', Auth::id())
             ->first();
 
-        if($assignment){
+        if ($assignment) {
             $assignment->update([
                 'acknowledged' => true,
                 'acknowledged_at' => now(),
             ]);
-            return back()->with('success','Asset Acknowledged Successfully!');
+            return back()->with('success', 'Asset Acknowledged Successfully!');
         }
         return back()->with('error', 'Asset not found or not assigned to you.');
     }

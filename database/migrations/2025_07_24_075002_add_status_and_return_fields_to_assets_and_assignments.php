@@ -37,5 +37,4 @@ return new class extends Migration
             $table->dropColumn(['returned', 'returned_at']);
         });
     }
-
 };

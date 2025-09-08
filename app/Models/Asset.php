@@ -22,7 +22,7 @@ class Asset extends Model
     ];
 
     protected $casts = [
-        'procurement_date'=> 'date',
+        'procurement_date' => 'date',
         'returned_date' => 'datetime',
     ];
 
@@ -51,7 +51,8 @@ class Asset extends Model
         });
     }
 
-    public function vendor(){
+    public function vendor()
+    {
         return $this->belongsTo(Vendor::class);
     }
 
@@ -60,7 +61,8 @@ class Asset extends Model
         return $this->hasMany(AssetAssignment::class);
     }
 
-    public function currentAssignment(){
+    public function currentAssignment()
+    {
         return $this->hasOne(AssetAssignment::class)->latest();
     }
 

@@ -16,7 +16,7 @@ class AdminController
         $stats = [
             'total_assets'     => Asset::count(),
             'assigned_assets'  => Asset::where('status', 'Assigned')->count(),
-            'unassigned_assets'=> Asset::where('status', 'Unassigned')->count(),
+            'unassigned_assets' => Asset::where('status', 'Unassigned')->count(),
             'returned_assets'  => Asset::where('status', 'Returned to vendor')->count(),
             'total_users'      => User::where('role', 'user')->count(),
             'total_vendors'    => Vendor::count(),
@@ -24,8 +24,8 @@ class AdminController
 
         // Load all asset assignments with asset & user info
         $assignments = AssetAssignment::with(['asset', 'user'])
-                        ->orderBy('created_at', 'desc')
-                        ->get();
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return view('admin.dashboard', compact('stats', 'assignments'));
     }
@@ -46,7 +46,7 @@ class AdminController
 
     public function storeAsset(Request $request)
     {
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
             'specification' => 'required|string',
@@ -57,7 +57,7 @@ class AdminController
             // we don't require status on create — default to Unassigned
         ]);
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
         }
 
@@ -70,7 +70,8 @@ class AdminController
     }
 
     // Add Vendor
-    public function createVendor(){
+    public function createVendor()
+    {
         return view('admin.vendors.create');
     }
 
@@ -92,7 +93,8 @@ class AdminController
     }
 
     // Assign Asset
-    public function createAssignment(){
+    public function createAssignment()
+    {
         $users = User::where('role', 'user')->get();
 
         // Only assets that are currently unassigned should be selectable
@@ -136,9 +138,9 @@ class AdminController
     public function returnAsset($id)
     {
         $assignment = AssetAssignment::where('asset_id', $id)
-                        ->where('returned', false)
-                        ->latest()
-                        ->first();
+            ->where('returned', false)
+            ->latest()
+            ->first();
 
         if ($assignment) {
             $assignment->update([
@@ -167,9 +169,9 @@ class AdminController
 
         // close any active assignment
         $assignment = AssetAssignment::where('asset_id', $id)
-                        ->where('returned', false)
-                        ->latest()
-                        ->first();
+            ->where('returned', false)
+            ->latest()
+            ->first();
 
         if ($assignment) {
             $assignment->update([
@@ -236,7 +238,7 @@ class AdminController
         return back()->with('success', 'Asset deleted successfully.');
     }
 
-    
+
     public function editVendor($id)
     {
         $vendor = Vendor::findOrFail($id);
@@ -247,7 +249,7 @@ class AdminController
     {
         $vendor = Vendor::findOrFail($id);
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:vendors,name,'.$id,
+            'name' => 'required|string|max:255|unique:vendors,name,' . $id,
             'company_name' => 'required|string|max:255',
             'address' => 'required|string',
         ]);

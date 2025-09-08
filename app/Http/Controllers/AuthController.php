@@ -11,36 +11,38 @@ use Illuminate\Routing\Controller;
 class AuthController extends Controller
 {
     // Login Form
-    public function showLogin(){
+    public function showLogin()
+    {
         return view('auth.login');
     }
 
     // Handle Login
-    public function login(Request $request){
+    public function login(Request $request)
+    {
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|min:6',
         ]);
 
-        $credentials = $request->only('email','password');
+        $credentials = $request->only('email', 'password');
 
-        if(Auth::attempt($credentials)){
+        if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            if(Auth::user()->role==='admin'){
+            if (Auth::user()->role === 'admin') {
                 return redirect()->route('admin.dashboard');
-            }
-            else{
+            } else {
                 return redirect()->route('user.dashboard');
             }
         }
         return back()->withErrors([
-            'email'=>'The provided credentials do not match our records.',
+            'email' => 'The provided credentials do not match our records.',
         ]);
     }
 
     // Handle Logout
-    public function logout(Request $request){
+    public function logout(Request $request)
+    {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
