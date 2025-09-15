@@ -1,4 +1,11 @@
-<form action="{{ route('admin.assignments.store') }}" method="POST">
+<form action="{{ route('admin.assignments.store') }}" method="POST" class="row g-3">
+    @csrf
     @include('admin.assignments._form')
-    <button type="submit" class="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700">Assign</button>
+
+    <!-- Submit Button -->
+    <div class="col-12 d-grid">
+        <button type="submit" class="btn btn-primary">
+            Assign
+        </button>
+    </div>
 </form>

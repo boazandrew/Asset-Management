@@ -6,53 +6,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Asset Management System')</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 </head>
 
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-light min-vh-100 d-flex flex-column">
+
     @auth
     <!-- Navigation Bar -->
-    <nav class="bg-white shadow-sm border-b">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <h1 class="text-xl font-semibold text-gray-900">Asset Management System</h1>
-                    <span class="ml-4 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">{{ucfirst(auth()->user()->role)}}</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-gray-700">Hello, {{auth()->user()->name}}</span>
-                    <form action="{{route('logout')}}" method="POST" class="inline">
-                        @csrf
-                        <button class="text-red-600 hover:text-red-800 font-medium" type="submit">Logout</button>
-                    </form>
-                </div>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-semibold text-dark" href="#">
+                Asset Management
+            </a>
+            <span class="badge bg-primary ms-2">
+                {{ ucfirst(auth()->user()->role) }}
+            </span>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
+                data-bs-target="#navbarContent" aria-controls="navbarContent" 
+                aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end mt-2 mt-lg-0" id="navbarContent">
+                <ul class="navbar-nav align-items-center gap-3">
+                    <li class="nav-item">
+                        <span class="text-muted small">Hello, <strong>{{ auth()->user()->name }}</strong></span>
+                    </li>
+                    <li class="nav-item">
+                        <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                            @csrf
+                            <button class="btn btn-sm btn-outline-danger" type="submit">
+                                Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>
     @endauth
 
-    <!-- main -->
-    <main class="@auth py-6 @endauth">
-        <div class="@auth max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 @endauth">
-            <!-- Flash message -->
+    <!-- Main Content -->
+    <main class="flex-grow-1 py-4">
+        <div class="@auth container-fluid px-3 px-md-4 @endauth">
+            
+            <!-- Flash Messages -->
             @if(session('success'))
-            <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-                {{ session('success') }}
+            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <i class="bi bi-check-circle me-1"></i> {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
             @endif
 
             @if(session('error'))
-            <div class="mb-4 bg-red-100 borderr border-red-400 text-red-700 px-4 py-3 rounded">
-                {{ session('error') }}
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                <i class="bi bi-exclamation-triangle me-1"></i> {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
             @endif
 
             @if($errors->any())
-            <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                <ul class="list-disc list-inside">
+            <div class="alert alert-danger shadow-sm">
+                <ul class="mb-0 ps-3">
                     @foreach($errors->all() as $error)
-                    <li>{{$error}}</li>
+                    <li>{{ $error }}</li>
                     @endforeach
                 </ul>
             </div>
@@ -62,6 +82,9 @@
         </div>
     </main>
 
+    <!-- Footer -->
+    <footer class="bg-white border-top text-center py-3 small text-muted">
+        © {{ date('Y') }} Asset Management System
+    </footer>
 </body>
-
 </html>

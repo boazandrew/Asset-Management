@@ -1,4 +1,8 @@
-import './bootstrap';
+import 'bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { gsap } from "gsap";
+
+gsap.from(".box", { opacity: 0, y: 50, duration: 1 });
 // Basic JavaScript for Asset Management System
 
 // Auto-hide flash messages after 5 seconds

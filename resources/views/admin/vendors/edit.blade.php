@@ -1,5 +1,11 @@
-<form action="{{ route('admin.vendors.update', $vendor->id) }}" method="POST">
+<form action="{{ route('admin.vendors.update', $vendor->id) }}" method="POST" class="w-100">
     @method('PUT')
+    @csrf
     @include('admin.vendors._form')
-    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Update</button>
+
+    <div class="d-grid mt-3">
+        <button type="submit" class="btn btn-primary">
+            Update
+        </button>
+    </div>
 </form>

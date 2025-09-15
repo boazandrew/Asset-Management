@@ -1,6 +1,14 @@
 @props(['name', 'label', 'type' => 'text'])
-<div class="mb-4">
-    <label for="{{ $name }}" class="block text-gray-700">{{ $label }}</label>
-    <input type="{{ $type }}" name="{{ $name }}" value="{{ old($name) }}" class="w-full border rounded p-2">
-    @error($name) <p class="text-red-500 text-sm">{{ $message }}</p> @enderror
+<div class="mb-3">
+    <label for="{{ $name }}" class="form-label">{{ $label }}</label>
+    <input 
+        type="{{ $type }}" 
+        name="{{ $name }}" 
+        value="{{ old($name) }}" 
+        class="form-control @error($name) is-invalid @enderror"
+        id="{{ $name }}"
+    >
+    @error($name) 
+        <div class="invalid-feedback">{{ $message }}</div> 
+    @enderror
 </div>

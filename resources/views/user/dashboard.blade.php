@@ -3,81 +3,94 @@
 @section('title', 'Dashboard - Asset Management System')
 
 @section('content')
-<div class="space-y-6">
+<div class="container-fluid py-4">
     <!-- Page Header -->
-    <div class="bg-white shadow rounded-lg p-6">
-        <h1 class="text-2xl font-bold text-gray-900">My Assigned Assets</h1>
-        <p class="mt-1 text-sm text-gray-600">View and acknowledge your assigned assets</p>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h1 class="h4 fw-bold mb-1">My Assigned Assets</h1>
+            <p class="text-muted small mb-0">View and acknowledge your assigned assets</p>
+        </div>
     </div>
 
     <!-- Assets list -->
-    <div class="bg-white shadow rounded-lg overflow-hidden">
+    <div class="card shadow-sm mb-4">
         @if($assignments->count()>0)
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asset Details</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Date</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+        <!-- Desktop mode -->
+        <div class="d-none d-md-block table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr class="text-muted text-uppercase small">
+                        <th>Asset Details</th>
+                        <th>Category</th>
+                        <th>Vendor</th>
+                        <th>Assigned Date</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody>
                     @foreach($assignments as $assignment)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap">
+                    <tr>
+                        <!-- Asset Details -->
+                        <td>
                             <div>
-                                <div class="text-sm font-medium text-gray-900">{{$assignment->asset->name}}</div>
-                                <div class="text-sm text-gray-500">{{$assignment->asset->brand}}</div>
-                                <div class="text-xs text-gray-400">Serial: {{$assignment->asset->nrg_serial_number}}</div>
+                                <div class="fw-semibold">{{ $assignment->asset->name }}</div>
+                                <div class="text-muted small">{{ $assignment->asset->brand }}</div>
+                                <div class="text-secondary small">Serial: {{ $assignment->asset->nrg_serial_number }}</div>
                             </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full @switch($assignment->asset->category)
-                                    @case('Laptop') bg-blue-100 text-blue-800 @break
-                                    @case('Monitor') bg-green-100 text-green-800 @break
-                                    @case('Mouse') bg-yellow-100 text-yellow-800 @break
-                                    @case('Keyboard') bg-purple-100 text-purple-800 @break
-                                    @default bg-gray-100 text-black @endswitch">
-                                {{$assignment->asset->category}}
+
+                        <!-- Category Badge -->
+                        <td>
+                            <span class="badge 
+                                @switch($assignment->asset->category)
+                                    @case('Laptop') bg-primary @break
+                                    @case('Monitor') bg-success @break
+                                    @case('Mouse') bg-warning text-dark @break
+                                    @case('Keyboard') bg-info text-dark @break
+                                    @default bg-secondary
+                                @endswitch">
+                                {{ $assignment->asset->category }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">{{$assignment->asset->vendor->name}}</div>
-                            <div class="text-sm text-gray-500">{{$assignment->asset->vendor->company_name}}</div>
+
+                        <!-- Vendor -->
+                        <td>
+                            <div class="fw-semibold">{{ $assignment->asset->vendor->name }}</div>
+                            <div class="text-muted small">{{ $assignment->asset->vendor->company_name }}</div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{$assignment->assigned_date->format('d M Y')}}
+
+                        <!-- Assigned Date -->
+                        <td class="small">
+                            {{ $assignment->assigned_date->format('d M Y') }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+
+                        <!-- Status -->
+                        <td>
                             @if($assignment->returned)
-                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-800">
-                                Returned
-                            </span>
+                            <span class="badge bg-secondary">Returned</span>
                             @elseif($assignment->acknowledged)
-                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                                ✓ Acknowledged
-                            </span>
+                            <span class="badge bg-success">✓ Acknowledged</span>
                             @else
-                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
-                                ⚠ Pending
-                            </span>
+                            <span class="badge bg-danger">⚠ Pending</span>
                             @endif
                         </td>
 
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <!-- Action -->
+                        <td class="text-end">
                             @if(!$assignment->acknowledged && !$assignment->returned)
-                            <form action="{{route('user.acknowledge.asset', $assignment->id)}}" method="POST" class="inline">
+                            <form action="{{ route('user.acknowledge.asset', $assignment->id) }}" method="POST" class="d-inline">
                                 @csrf
-                                <button type="submit" onclick="return confirm('Are you sure you want to acknowledge this asset?')" class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Acknowledge</button>
+                                <button type="submit"
+                                    onclick="return confirm('Are you sure you want to acknowledge this asset?')"
+                                    class="btn btn-sm btn-success">
+                                    Acknowledge
+                                </button>
                             </form>
                             @elseif($assignment->returned)
-                            <span class="text-gray-400 text-xs">Returned</span>
+                            <span class="text-muted small">Returned</span>
                             @else
-                            <span class="text-gray-400 text-xs">Already acknowledged</span>
+                            <span class="text-muted small">Already acknowledged</span>
                             @endif
                         </td>
                     </tr>
@@ -85,37 +98,144 @@
                 </tbody>
             </table>
         </div>
+        <!-- Mobile view -->
+        <div class="d-block d-md-none">
+            @foreach($assignments as $assignment)
+            <div class="card mb-3 border">
+                <div class="card-body p-3">
+                    <h6 class="fw-bold mb-1">{{$assignment->asset->name}}</h6>
+                    <p class="mb-1 small text-muted">{{$assignment->asset->brand}} | Serial: {{$assignment->asset->nrg_serial_number}}</p>
+
+                    <p class="mb-1"><span class="fw-semibold">Category:</span>
+                        <span class="badge
+                            @switch($assignment->asset->category)
+                            @case('Laptop') bg-primary @break
+                            @case('Monitor') bg-success @break
+                            @case('Mouse') bg-warning text-dark @break
+                            @case('Keyboard') bg-info text-dark @break
+                            @default bg-secondary
+                            @endswitch
+                        ">
+                            {{$assignment->asset->category}}
+                        </span>
+                    </p>
+
+                    <p class="mb-1"><span class="fw-semibold">Vendor: </span>{{$assignment->asset->vendor->name}} <br>
+                        <span class="text-muted small">{{$assignment->asset->vendor->company_name}}</span>
+                    </p>
+
+                    <p class="mb-1"><span class="fw-semibold">Assigned: </span>{{$assignment->assigned_date->format('d M Y')}}</p>
+
+                    <p class="mb-2"><span class="fw-semibold">Status: </span>
+                        @if($assignment->returned)
+                        <span class="badge bg-secondary">Returned</span>
+                        @elseif($assignment->acknowledged)
+                        <span class="badge bg-success">✓ Acknowledged</span>
+                        @else
+                        <span class="badge bg-danger">⚠ Pending</span>
+                        @endif
+                    </p>
+                    <!-- Action -->
+                    <div>
+                        @if(!$assignment->acknowledged && !$assignment->returned)
+                        <form action="{{ route('user.acknowledge.asset', $assignment->id) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" onclick="return confirm('Are you sure you want to acknowledge this asset?')" class="btn btn-sm btn-success">
+                                Acknowledge
+                            </button>
+                        </form>
+                        @elseif($assignment->returned)
+                        <span class="text-muted small">Returned</span>
+                        @else
+                        <span class="text-muted small">Already acknowledged</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
         @else
-        <!-- Empty -->
-        <div class="text-center py-12">
-            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+        <!-- Empty State -->
+        <div class="text-center p-5">
+            <svg class="mb-3 text-muted" width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 
+                         002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
             </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">No assets assigned</h3>
-            <p class="my-1 text-sm text-gray-500">You don't have any assets assigned to you yet.</p>
+            <h5 class="fw-semibold">No assets assigned</h5>
+            <p class="text-muted small mb-0">You don't have any assets assigned to you yet.</p>
         </div>
         @endif
     </div>
 
     <!-- Summary -->
     @if($assignments->count() > 0)
-    <div class="bg-white shadow rounded-lg p-6">
-        <h2 class="text-lg font-medium text-gray-900 mb-4">Summary</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="text-center">
-                <div class="text-2xl font-semibold text-gray-900">{{ $assignments->count() }}</div>
-                <div class="text-sm text-gray-500">Total Assets</div>
+    <div class="row g-3">
+        <div class="col-12 col-md-4">
+            <div class="card text-center shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-1">{{ $assignments->count() }}</h5>
+                    <p class="text-muted small mb-0">Total Assets</p>
+                </div>
             </div>
-            <div class="text-center">
-                <div class="text-2xl font-semibold text-green-600">{{ $assignments->where('acknowledged', true)->count() }}</div>
-                <div class="text-sm text-gray-500">Acknowledged</div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card text-center shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="fw-bold text-success mb-1">{{ $assignments->where('acknowledged', true)->count() }}</h5>
+                    <p class="text-muted small mb-0">Acknowledged</p>
+                </div>
             </div>
-            <div class="text-center">
-                <div class="text-2xl font-semibold text-red-600">{{ $assignments->where('acknowledged', false)->count() }}</div>
-                <div class="text-sm text-gray-500">Pending</div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card text-center shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="fw-bold text-danger mb-1">{{ $assignments->where('acknowledged', false)->count() }}</h5>
+                    <p class="text-muted small mb-0">Pending</p>
+                </div>
             </div>
         </div>
     </div>
     @endif
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Animate page header card
+        gsap.from(".card.shadow-sm.mb-4:first-of-type", {
+            opacity: 0,
+            y: 20,
+            duration: 0.6,
+            ease: "power1.out"
+        });
+
+        // Animate assets list (desktop & mobile view)
+        gsap.from(".table, .card.mb-3.border", {
+            opacity: 0,
+            y: 15,
+            duration: 0.6,
+            ease: "power1.out",
+            stagger: 0.15,
+            delay: 0.2
+        });
+
+        // Empty state (if no assets)
+        gsap.from(".text-center.p-5", {
+            opacity: 0,
+            scale: 0.95,
+            duration: 0.6,
+            ease: "power1.out",
+            delay: 0.2
+        });
+
+        // Summary cards
+        gsap.from(".row.g-3 .col-12", {
+            opacity: 0,
+            y: 20,
+            duration: 0.5,
+            ease: "power1.out",
+            stagger: 0.2,
+            delay: 0.4
+        });
+    });
+</script>
 @endsection
