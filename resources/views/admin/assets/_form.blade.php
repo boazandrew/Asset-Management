@@ -10,13 +10,22 @@ $isVendorReturned = $isEdit && $asset->status === 'Returned to vendor';
     @method('PUT')
     @endif
     <div class="row g-3">
-        <!-- Serial display (readonly) -->
-        <div class="col-12">
+        <!-- NRG Serial Number -->
+        <div class="col-md-6 col-12">
             <label class="form-label fw-semibold">NRG Serial Number</label>
-            <input type="text"
-                value="{{ $isEdit ? $asset->nrg_serial_number : (\App\Models\Asset::max('nrg_serial_number') ? 'NRG_' . str_pad(((int) str_replace('NRG_', '', \App\Models\Asset::max('nrg_serial_number'))) + 1, 3, '0', STR_PAD_LEFT) : 'NRG_001') }}"
-                readonly
-                class="form-control bg-light" />
+            <input name="nrg_serial_number" type="text"
+                value="{{ old('nrg_serial_number', $asset->nrg_serial_number ?? '') }}"
+                class="form-control"
+                {{ $isVendorReturned ? 'disabled' : '' }} required>
+        </div>
+
+        <!-- Product Serial Number -->
+        <div class="col-md-6 col-12">
+            <label class="form-label fw-semibold">Product Serial Number</label>
+            <input name="product_serial_number" type="text"
+                value="{{ old('product_serial_number', $asset->product_serial_number ?? '') }}"
+                class="form-control"
+                {{ $isVendorReturned ? 'disabled' : '' }} required>
         </div>
 
         <!-- Name -->
@@ -44,17 +53,20 @@ $isVendorReturned = $isEdit && $asset->status === 'Returned to vendor';
         </div>
 
         <!-- Category -->
-        <div class="col-md-6 col-12">
-            <label class="form-label fw-semibold">Category</label>
-            <select name="category"
-                class="form-select"
-                {{ $isVendorReturned ? 'disabled' : '' }} required>
+        <div class="mb-3">
+            <label for="category_id" class="form-label">Category</label>
+            <select name="category_id" id="category_id" class="form-select" required>
                 <option value="">Select Category</option>
-                @foreach(['Laptop','Monitor','Mouse','Keyboard','Others'] as $cat)
-                <option value="{{ $cat }}" {{ old('category', $asset->category ?? '') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                @foreach($categories as $category)
+                <option value="{{ $category->id }}"
+                    {{ old('category_id', $asset->category_id ?? '') == $category->id ? 'selected' : '' }}>
+                    {{ $category->name }}
+                </option>
                 @endforeach
             </select>
+            @error('category_id') <p class="text-danger small">{{ $message }}</p> @enderror
         </div>
+
 
         <!-- Handling Type -->
         <div class="col-md-6 col-12">

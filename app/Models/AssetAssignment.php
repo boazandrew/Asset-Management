@@ -13,6 +13,7 @@ class AssetAssignment extends Model
         'user_id',
         'asset_id',
         'assigned_date',
+        'assigned_by',
         'acknowledged',
         'acknowledged_at',
         'returned',
@@ -36,5 +37,9 @@ class AssetAssignment extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    public function assignedBy()
+    {
+        return $this->belongsTo(User::class, 'assigned_by');
     }
 }

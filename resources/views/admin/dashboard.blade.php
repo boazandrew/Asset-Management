@@ -78,279 +78,6 @@
         </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="row g-2 g-md-3">
-        <div class="col-12 col-md-4">
-            <a href="{{ route('admin.assets.create') }}"
-                onclick="event.preventDefault(); openUniversalModal('asset');"
-                class="btn btn-primary w-100">Add Asset</a>
-        </div>
-        <div class="col-12 col-md-4">
-            <a href="{{ route('admin.vendors.create') }}"
-                onclick="event.preventDefault(); openUniversalModal('vendor');"
-                class="btn btn-success w-100">Add Vendor</a>
-        </div>
-        <div class="col-12 col-md-4">
-            <a href="{{ route('admin.assignments.create') }}"
-                onclick="event.preventDefault(); openUniversalModal('assignment');"
-                class="btn text-white w-100" style="background-color:#6f42c1;">Assign Asset</a>
-        </div>
-    </div>
-
-
-    <!-- Assets Status -->
-    <div class="bg-white shadow-sm rounded p-4">
-        <h2 class="h6 fw-semibold mb-3">Assets Status</h2>
-        <!-- Desktop Mode -->
-        <div class="d-none d-md-block table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light border-0">
-                    <tr class="text-muted small text-uppercase">
-                        <th>Asset</th>
-                        <th>User</th>
-                        <th>Acknowledged</th>
-                        <th>Returned</th>
-                        <th class="text-end">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="align-middle">
-                    @foreach($assignments as $assignment)
-                    <tr class="border-bottom">
-                        <td class="fw-semibold">{{ $assignment->asset->name ?? '-' }}</td>
-                        <td>{{ $assignment->user->name ?? '-' }}</td>
-                        <td>
-                            @if($assignment->acknowledged)
-                            <span class="badge bg-success-subtle text-success">Acknowledged</span>
-                            @else
-                            <span class="badge bg-danger-subtle text-danger">Pending</span>
-                            @endif
-                        </td>
-                        <td>
-                            @if($assignment->returned && $assignment->returned_at)
-                            <span class="badge bg-secondary-subtle text-muted">
-                                Returned ({{ $assignment->returned_at->format('d M Y') }})
-                            </span>
-                            @else
-                            <span class="badge bg-primary-subtle text-primary">Not Returned</span>
-                            @endif
-                        </td>
-                        <td class="text-end">
-                            @if(!$assignment->returned)
-                            @if($assignment->asset && $assignment->asset->handling_type === 'Returnable')
-                            <form action="{{ route('admin.assets.return', $assignment->asset->id) }}"
-                                method="POST" class="d-inline">
-                                @csrf
-                                <button class="btn btn-sm btn-warning text-white shadow-sm"
-                                    onclick="return confirm('Return this asset from user?')">
-                                    Return
-                                </button>
-                            </form>
-                            @else
-                            <span class="text-muted small">No Return</span>
-                            @endif
-                            @else
-                            <span class="text-muted small">Returned</span>
-                            @endif
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        <!-- Mobile View -->
-        <div class="d-block d-md-none">
-            @foreach($assignments as $assignment)
-            <div class="card mb-3 border">
-                <div class="card-body p-3">
-                    <h6 class="fw-bold mb-1">Asset: <span class="mb-1 small text-muted">{{$assignment->asset->name?? '-'}}</span></h6>
-                    <p class="mb-1 small text-muted fw-bold">User: {{$assignment->user->name ?? '-'}}</p>
-                    <p class="mb-1"><span class="mb-1 small fw-semibold">Acknowledged: </span>
-                        @if($assignment->acknowledged)
-                        <span class="badge bg-success-subtle text-success">Acknowledged</span>
-                        @else
-                        <span class="badge bg-danger-subtle text-danger">Pending</span>
-                        @endif
-                    </p>
-                    <p class="mb-1"><span class="mb-1 small fw-semibold">Returned: </span>
-                        @if($assignment->returned && $assignment->returned_at)
-                        <span class="badge bg-secondary-subtle text-muted">
-                            Returned ({{ $assignment->returned_at->format('d M Y') }})
-                        </span>
-                        @else
-                        <span class="badge bg-primary-subtle text-primary">Not Returned</span>
-                        @endif
-                    </p>
-                    <p class="mb-1 small fw-semibold">
-                        @if(!$assignment->returned)
-                        @if($assignment->asset && $assignment->asset->handling_type === 'Returnable')
-                    <form action="{{ route('admin.assets.return', $assignment->asset->id) }}"
-                        method="POST" class="d-inline">
-                        @csrf
-                        <button class="btn btn-sm btn-warning text-white shadow-sm"
-                            onclick="return confirm('Return this asset from user?')">
-                            Return
-                        </button>
-                    </form>
-                    @else
-                    <span class="text-muted small">No Return</span>
-                    @endif
-                    @else
-                    <span class="text-muted small">Returned</span>
-                    @endif
-                    </p>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-
-    <!-- Assets Table -->
-    <div class="bg-white shadow-sm rounded p-4">
-        <h2 class="h6 fw-semibold mb-3">Assets</h2>
-        <!-- Desktop mode -->
-        <div class="d-none d-md-block table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light border-0">
-                    <tr class="text-muted small text-uppercase">
-                        <th>S.No</th>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>Brand</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="align-middle">
-                    @foreach(\App\Models\Asset::orderBy('id','asc')->get() as $asset)
-                    <tr class="border-bottom">
-                        <td class="fw-semibold">{{ $asset->nrg_serial_number }}</td>
-                        <td class="fw-semibold">{{ $asset->name }}</td>
-                        <td>
-                            <!-- {{ $asset->status }} -->
-                            @if($asset->status === 'Unassigned')
-                            <span class="badge bg-success">Available</span>
-                            @elseif($asset->status === 'Assigned')
-                            <span class="badge bg-primary">Assigned</span>
-                            @elseif($asset->status === 'Returned to vendor')
-                            <span class="badge bg-secondary">Returned to vendor</span>
-                            @endif
-                        </td>
-                        <td>{{ $asset->brand }}</td>
-                        <td class="text-end">
-                            @if($asset->status !== 'Returned to vendor')
-                            <a href="{{ route('admin.assets.edit', $asset->id) }}"
-                                onclick="event.preventDefault(); openUniversalModal('asset', {{ $asset->id }});"
-                                class="btn btn-sm btn-primary">Edit</a>
-                            @else
-                            <button class="btn btn-sm btn-secondary" disabled>Edit</button>
-                            @endif
-                            <form action="{{ route('admin.assets.delete', $asset->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this asset?')">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-sm btn-danger">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        <!-- Mobile view -->
-        <div class="d-block d-md-none">
-            @foreach(\App\Models\Asset::orderBy('id','asc')->get() as $asset)
-            <div class="card mb-3 border">
-                <div class="card-body p-3">
-                    <h6 class="fw-bold mb-1">{{$asset->nrg_serial_number}} : {{$asset->name}}</h6>
-                    <p class="mb-1"><span class="fw-semibold">{{$asset->status}}: </span>
-                        @if($asset->status === 'Unassigned')
-                        <span class="badge bg-success">Available</span>
-                        @elseif($asset->status === 'Assigned')
-                        <span class="badge bg-primary">Assigned</span>
-                        @elseif($asset->status === 'Returned to vendor')
-                        <span class="badge bg-secondary">Returned to vendor</span>
-                        @endif
-                    </p>
-                    <p class="mb-1"><span class="fw-semibold">Brand: </span><span class="text-muted small">{{$asset->brand}}</span></p>
-                    <div class="d-inline-flex gap-2 align-items-center mb-1">
-                        @if($asset->status !== 'Returned to vendor')
-                        <a href="{{ route('admin.assets.edit', $asset->id) }}"
-                            onclick="event.preventDefault(); openUniversalModal('asset', {{ $asset->id }});"
-                            class="btn btn-sm btn-primary">Edit</a>
-                        @else
-                        <button class="btn btn-sm btn-secondary" disabled>Edit</button>
-                        @endif
-                    <form action="{{ route('admin.assets.delete', $asset->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this asset?')">
-                        @csrf
-                        @method('DELETE')
-                        <button class="btn btn-sm btn-danger">Delete</button>
-                    </form>
-                    </div>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-
-    <!-- Vendors Table -->
-    <div class="bg-white shadow-sm rounded p-4">
-        <h2 class="h6 fw-semibold mb-3">Vendors</h2>
-        <!-- Desktop -->
-        <div class="d-none d-md-block table-responsive">
-            <table class="table table-hover align-middle mb-0 w-100">
-                <colgroup>
-                    <col style="width:35%;">
-                    <col style="width:45%;">
-                    <col style="width:20%;">
-                </colgroup>
-                <thead class="bg-light border-0">
-                    <tr class="text-muted small text-uppercase">
-                        <th>Name</th>
-                        <th>Company</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="align-middle">
-                    @foreach(App\Models\Vendor::all() as $vendor)
-                    <tr class="border-bottom">
-                        <td class="fw-semibold">{{ $vendor->name }}</td>
-                        <td>{{ $vendor->company_name }}</td>
-                        <td class="text-end">
-                            <a href="{{ route('admin.vendors.edit', $vendor->id) }}"
-                                onclick="event.preventDefault(); openUniversalModal('vendor', {{ $vendor->id }});"
-                                class="btn btn-sm btn-primary">Edit</a>
-                            <form action="{{ route('admin.vendors.delete', $vendor->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this vendor?')">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-sm btn-danger">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        <!-- Mobile -->
-        <div class="d-block d-md-none">
-            @foreach(App\Models\Vendor::all() as $vendor)
-            <div class="card mb-3 border">
-                <div class="card-body p-3">
-                    <p class="fw-bold mb-1">{{ $vendor->name }}</p>
-                    <p class="fw-semibold mb-1">{{$vendor->company_name}}</p>
-                    <div class="d-inline-flex gap-2 align-items-center mb-1 small fw-semibold">
-                        <a href="{{ route('admin.vendors.edit', $vendor->id) }}"
-                            onclick="event.preventDefault(); openUniversalModal('vendor', {{ $vendor->id }});"
-                            class="btn btn-sm btn-primary">Edit</a>
-                    <form action="{{ route('admin.vendors.delete', $vendor->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this vendor?')">
-                        @csrf
-                        @method('DELETE')
-                        <button class="btn btn-sm btn-danger">Delete</button>
-                    </form>
-                    </div>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-
     <!-- System Overview -->
     <div class="bg-white shadow-sm rounded p-4">
         <h2 class="h6 fw-bold mb-3 text-center text-md-start">System Overview</h2>
@@ -364,6 +91,64 @@
                 <h6 class="text-muted small mb-1 fw-semibold">Vendors</h6>
                 <p class="h5 fw-bold mb-1">{{ $stats['total_vendors'] }}</p>
                 <p class="text-muted small fw-semibold">Active vendors</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row g-2 g-md-3">
+        <div class="col-12 col-md-4">
+            <a href="{{ route('admin.vendors.create') }}"
+                onclick="event.preventDefault(); openUniversalModal('vendor');"
+                class="btn btn-success w-100">Add Vendor</a>
+        </div>
+        <div class="col-12 col-md-4">
+            <a href="{{ route('admin.assets.create') }}"
+                onclick="event.preventDefault(); openUniversalModal('asset');"
+                class="btn btn-primary w-100">Add Asset</a>
+        </div>
+        <div class="col-12 col-md-4">
+            <a href="{{ route('admin.assignments.create') }}"
+                onclick="event.preventDefault(); openUniversalModal('assignment');"
+                class="btn text-white w-100" style="background-color:#6f42c1;">Assign Asset</a>
+        </div>
+    </div>
+
+    <!-- Tables -->
+    <div class="bg-white shadow-sm rounded p-4">
+        <!-- Table Navigations -->
+        <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+            <li class="nav-item" role="Presentation">
+                <button class="nav-link active" id="status-tab" data-bs-toggle="tab" data-bs-target="#status" type="button" role="tab" aria-controls="status" aria-selected="true">
+                    Assets Status
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="assets-tab" data-bs-toggle="tab" data-bs-target="#assets" type="button" role="tab" aria-controls="assets" aria-selected="true">
+                    Assets
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="vendors-tab" data-bs-toggle="tab" data-bs-target="#vendors" type="button" role="tab" aria-controls="vendors" aria-selected="true">
+                    Vendors
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content mt-3" class="dashboardTabsContent">
+            <!-- Asset status -->
+            <div class="tab-pane fade show active" id="status" role="tabpanel" aria-labelledby="status-tab">
+                @include('admin.tables.assets_status')
+            </div>
+
+            <!-- Assets -->
+            <div class="tab-pane fade" id="assets" role="tabpanel" aria-labelledby="assets-tab">
+                @include('admin.tables.assets')
+            </div>
+
+            <!-- Vendors -->
+            <div class="tab-pane fade" id="vendors" role="tabpanel" aria-labelledby="vendors-tab">
+                @include('admin.tables.vendors')
             </div>
         </div>
     </div>
@@ -423,7 +208,7 @@
     }
 </script>
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
         // Fade in header (very subtle)
         gsap.from(".navbar", {
             opacity: 0,

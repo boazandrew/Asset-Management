@@ -14,7 +14,9 @@ return new class extends Migration
             $table->string('brand');
             $table->string('specification')->nullable(false);
             $table->string('nrg_serial_number')->unique();
-            $table->enum('category', ['Laptop', 'Monitor', 'Mouse', 'Keyboard', 'Others']);
+            $table->string('product_serial_number')->unique();
+            // $table->enum('category', ['Laptop', 'Monitor', 'Mouse', 'Keyboard', 'Others']);
+            $table->foreignId('category_id')->after('product_serial_number')->constrained()->onDelete('cascade');
             $table->enum('handling_type', ['Returnable', 'Non-returnable', 'Consumable']);
             $table->foreignId('vendor_id')->constrained()->onDelete('cascade');
             $table->date('procurement_date');
@@ -25,6 +27,9 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('assets');
+        Schema::table('assets', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('category_id');
+            $table->enum('category', ['Laptop', 'Monitor', 'Mouse', 'Keyboard', 'Others']);
+        });
     }
 };

@@ -7,6 +7,7 @@ use App\Models\Asset;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\AssetAssignment;
+use App\Models\Category;
 use Illuminate\Support\Facades\Validator;
 
 class AdminController
@@ -23,7 +24,7 @@ class AdminController
         ];
 
         // Load all asset assignments with asset & user info
-        $assignments = AssetAssignment::with(['asset', 'user'])
+        $assignments = AssetAssignment::with(['asset', 'user', 'assignedBy'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -34,14 +35,15 @@ class AdminController
     public function createAsset(Request $request)
     {
         $vendors = Vendor::all();
+        $categories = Category::all();
 
         // If AJAX request, return only the _form partial HTML
         if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
-            return view('admin.assets._form', compact('vendors'))->render();
+            return view('admin.assets._form', compact('vendors', 'categories'))->render();
         }
 
         // Normal full page (fallback)
-        return view('admin.assets.create', compact('vendors'));
+        return view('admin.assets.create', compact('vendors', 'categories'));
     }
 
     public function storeAsset(Request $request)
@@ -50,7 +52,9 @@ class AdminController
             'name' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
             'specification' => 'required|string',
-            'category' => 'required|in:Laptop,Monitor,Mouse,Keyboard,Others',
+            'nrg_serial_number' => 'required|string|max:255|unique:assets,nrg_serial_number',
+            'product_serial_number' => 'required|string|max:255|unique:assets,product_serial_number',
+            'category_id' => 'required|exists:categories,id',
             'handling_type' => 'required|in:Returnable,Non-returnable,Consumable',
             'vendor_id' => 'required|exists:vendors,id',
             'procurement_date' => 'required|date',
@@ -116,20 +120,36 @@ class AdminController
         }
 
         $data = $validator->validated();
-
         $asset = Asset::findOrFail($data['asset_id']);
+
         if ($asset->status !== 'Unassigned') {
             return back()->with('error', 'This asset is not available for assignment.');
         }
 
-        AssetAssignment::create($data);
+        $admin = auth()->user() ?? User::where('role', 'admin')->first();
 
-        // mark asset as assigned
+        if (!$admin) {
+            return back()->with('error', 'No admin user found to assign this asset.');
+        }
+
+        $adminId = $admin->id;
+
+
+        AssetAssignment::create([
+            'asset_id'      => $data['asset_id'],
+            'user_id'       => $data['user_id'],
+            'assigned_date' => $data['assigned_date'],
+            'assigned_by'   => $adminId,
+            'acknowledged'  => false,
+            'returned'      => false,
+        ]);
+
         $asset->status = 'Assigned';
         $asset->save();
 
         return redirect()->route('admin.dashboard')->with('success', 'Asset assigned successfully.');
     }
+
 
     /**
      * Return action from user -> mark assignment returned and make asset available (Unassigned)
@@ -192,12 +212,13 @@ class AdminController
     {
         $asset = Asset::findOrFail($id);
         $vendors = Vendor::all();
+        $categories = Category::all();
 
         if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
-            return view('admin.assets._form', compact('asset', 'vendors'))->render();
+            return view('admin.assets._form', compact('asset', 'vendors', 'categories'))->render();
         }
 
-        return view('admin.assets.edit', compact('asset', 'vendors'));
+        return view('admin.assets.edit', compact('asset', 'vendors', 'categories'));
     }
 
     // Update Asset
@@ -214,7 +235,9 @@ class AdminController
             'name' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
             'specification' => 'required|string',
-            'category' => 'required|in:Laptop,Monitor,Mouse,Keyboard,Others',
+            'nrg_serial_number' => 'required|string|max:255|unique:assets,nrg_serial_number' . $id,
+            'product_serial_number' => 'required|string|max:255|unique:assets,product_serial_number' . $id,
+            'category_id' => 'required|exists:categories,id',
             'handling_type' => 'required|in:Returnable,Non-returnable,Consumable',
             'vendor_id' => 'required|exists:vendors,id',
             'procurement_date' => 'required|date',
