@@ -4,8 +4,8 @@
         <table id="assetsTable" class="table table-bordered table-striped align-middle" style="width: 100%;">
             <thead class="table-light">
                 <tr>
-                    <th style="width: 8%;">S.no</th>
-                    <th style="width: 12%;">Product S.no</th>
+                    <th style="width: 8%;">NRG Serial No</th>
+                    <th style="width: 12%;">SN/ST</th>
                     <th style="width: 15%;">Product Name</th>
                     <th style="width: 10%;">Status</th>
                     <th style="width: 10%;">Brand</th>

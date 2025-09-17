@@ -18,10 +18,14 @@ return new class extends Migration
             $table->timestamps();
         });
         DB::table('categories')->insert([
-            ['name' => 'Laptop'],
+            ['name' => 'Laptop / PC'],
             ['name' => 'Monitor'],
             ['name' => 'Mouse'],
+            ['name' => 'Headphones'],
             ['name' => 'Keyboard'],
+            ['name' => 'Equipment'],
+            ['name' => 'Gift'],
+            ['name' => 'Furniture'],
             ['name' => 'Others'],
         ]);
     }

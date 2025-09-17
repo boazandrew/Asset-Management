@@ -21,7 +21,7 @@ $isVendorReturned = $isEdit && $asset->status === 'Returned to vendor';
 
         <!-- Product Serial Number -->
         <div class="col-md-6 col-12">
-            <label class="form-label fw-semibold">Product Serial Number</label>
+            <label class="form-label fw-semibold">Product Serial Number (SN/ST)</label>
             <input name="product_serial_number" type="text"
                 value="{{ old('product_serial_number', $asset->product_serial_number ?? '') }}"
                 class="form-control"

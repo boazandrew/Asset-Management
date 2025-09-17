@@ -170,6 +170,65 @@
 </div>
 
 <script>
+    function initSelect2(container) {
+        if (typeof jQuery === 'undefined' || typeof jQuery().select2 === 'undefined') return;
+
+        const $container = container ? $(container) : $(document);
+
+        // Format asset option
+        function formatAsset(option) {
+            if (!option.id) return option.text;
+            const $el = $(option.element);
+            const serial = $el.data('serial') || '';
+            const name = $el.data('name') || option.text;
+            return $(`<div><strong>${serial}</strong> - ${name}</div>`);
+        }
+
+        // Format user option
+        function formatUser(option) {
+            if (!option.id) return option.text;
+            const $el = $(option.element);
+            const email = $el.data('email') || '';
+            return $(`<div>${option.text}</div>`);
+        }
+
+        // Initialize Asset dropdown
+        $container.find('.select2-assets').each(function() {
+            const $sel = $(this);
+            if ($sel.next('.select2-container').length) $sel.select2('destroy');
+
+            $sel.select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: $sel.attr('placeholder') || 'Search asset...',
+                allowClear: true,
+                templateResult: formatAsset,
+                templateSelection: formatAsset,
+                dropdownParent: $sel.closest('.modal').length ? $sel.closest('.modal') : undefined
+            });
+        });
+
+        // Initialize User dropdown
+        $container.find('.select2-users').each(function() {
+            const $sel = $(this);
+            if ($sel.next('.select2-container').length) $sel.select2('destroy');
+
+            $sel.select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: $sel.attr('placeholder') || 'Search user...',
+                allowClear: true,
+                templateResult: formatUser,
+                templateSelection: formatUser,
+                dropdownParent: $sel.closest('.modal').length ? $sel.closest('.modal') : undefined
+            });
+        });
+    }
+
+    // Run on page load
+    $(document).ready(() => initSelect2(document));
+
+    // Universal modal loader
     function openUniversalModal(type, id = null) {
         const modalTitle = document.getElementById('universalModalTitle');
         const modalContent = document.getElementById('universalModalContent');
@@ -191,22 +250,31 @@
         fetch(url, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'same-origin'
+                }
             })
             .then(res => res.text())
-            .then(html => modalContent.innerHTML = html)
-            .catch(() => modalContent.innerHTML = '<div class="text-danger">Failed to load form.</div>');
+            .then(html => {
+                modalContent.innerHTML = html;
+                initSelect2(modalContent); // initialize inside modal
+            })
+            .catch(() => {
+                modalContent.innerHTML = '<div class="text-danger">Failed to load form.</div>';
+            });
 
-        const modal = new bootstrap.Modal(document.getElementById('universalModal'));
-        modal.show();
+        new bootstrap.Modal(document.getElementById('universalModal')).show();
     }
-
     function closeUniversalModal() {
-        const modal = bootstrap.Modal.getInstance(document.getElementById('universalModal'));
-        if (modal) modal.hide();
+    const modalEl = document.getElementById('universalModal');
+    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (modalInstance) {
+        modalInstance.hide();
     }
+}
+
 </script>
+
+
+
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         // Fade in header (very subtle)
@@ -236,7 +304,7 @@
             delay: 0.4
         });
 
-        // 🔥 Quick Actions buttons
+        // Quick Actions buttons
         gsap.from(".row.g-2 .btn, .row.g-md-3 .btn", {
             opacity: 0,
             scale: 0.9,

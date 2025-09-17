@@ -49,7 +49,7 @@
             <table id="userAssetsTable" class="table table-bordered table-striped align-middle" style="width: 100%;">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 8%;">Serial No</th>
+                        <th style="width: 8%;">NRG Serial No</th>
                         <th style="width: 20%;">Asset Details</th>
                         <th style="width: 10%;">Category</th>
                         <th style="width: 12%;">Assigned Date</th>
@@ -68,7 +68,7 @@
                             <div>
                                 <div class="fw-semibold">{{ $assignment->asset->name }}</div>
                                 <div class="text-muted small">{{ $assignment->asset->brand }}</div>
-                                <div class="text-secondary small">PSN: {{ $assignment->asset->product_serial_number }}</div>
+                                <div class="text-secondary small">SN/ST: {{ $assignment->asset->product_serial_number }}</div>
                             </div>
                         </td>
 
